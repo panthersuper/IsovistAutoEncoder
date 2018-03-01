@@ -71,13 +71,23 @@
             [1603.9346017837524, 1613.3923770244019, 1642.3313971898529, 1692.5333556170744, 1767.2741758081227, 1871.8809229741748, 2014.7576594703494, 2209.290029518545, 2477.5541890338668, 2858.1104248184542, 3424.2222437028709, 4333.34034506563, 5995.3820615958921, 9914.1723798740823, 10000.0, 10000.0, 10000.000000000002, 10000.000000000002, 10000.0, 10000.000000000002, 10000.0, 10000.0, 10000.0, 10000.0, 10000.0, 10000.0, 10000.000000000002, 10000.0, 10000.0, 10000.0]
         ]
 
-        var dataString = JSON.stringify(myinput);
+        myinput = myinput.map((ds) => (ds.map((d) => d/10000)));
+
+        var inputs = {
+            a:myinput,
+            b:myinput,
+            c:myinput
+        }
+
+        var dataString = JSON.stringify(inputs);
+
         $.ajax({
             type: "POST",
             url: "index.php",
             data: { mydata: dataString },
             success: function(response) {
-                console.log(response);
+                let res = JSON.parse(response);
+                console.log(res);
 
             }
         });

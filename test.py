@@ -43,7 +43,7 @@ z2 = API.encode(data2,net)
 z3 = z + (z - z2)
 xx = API.decode(z3,net)
 
-print(result)
-result = API.label(xx,net,3)
+print(data)
+# result = API.label(xx,net,3)
 
-print(result)
+# print(result)

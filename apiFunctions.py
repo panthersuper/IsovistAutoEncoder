@@ -81,8 +81,8 @@ def get_encode(loader, size, net):
     return out    
 
 # get topN result for a single input image
-def label(input,net,topN):
-    input = np.array(input)
+def label(input_,net,topN):
+    input = np.array(input_)
     input = input.astype(float)
     input = np.reshape(input,(1,input.shape[0],input.shape[1],1))
     input = np.swapaxes(input,1,3)
@@ -95,11 +95,21 @@ def label(input,net,topN):
     # _, predicted = torch.max(outputs.data, 1)
     _, predicted = torch.topk(outputs[1].data, topN)
 
-    return predicted[0].cpu().numpy().tolist()
+    return predicted[0].cpu().numpy()
+# get label using the latent vector
+def labelByZ(z,net,topN):
+    zz = np.array(z)
+    zz = zz.astype(float)
+    zz = torch.from_numpy(zz).float()
+
+    outputs = net.zToLabels(Variable(zz))
+    _, predicted = torch.topk(outputs.data, topN)
+
+    return predicted.cpu().numpy()   
 
 # get latent vector for the input(single image) using the net
-def encode(input,net):
-    input = np.array(input)
+def encode(input_,net):
+    input = np.array(input_)
     input = input.astype(float)
     input = np.reshape(input,(1,input.shape[0],input.shape[1],1))
     input = np.swapaxes(input,1,3)
