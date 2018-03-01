@@ -15,8 +15,8 @@ import torch.nn.functional as F
 
 # Training Parameters
 learning_rate = 0.01
-training_epoches = 10
-step_display = 10
+training_epoches = 20
+step_display = 50
 step_save = 2
 path_save = 'test'
 start_from = ''#'./alexnet64/Epoch28'
@@ -112,7 +112,7 @@ for epoch in range(training_epoches):
         # forward + backward + optimize
         output_x,output_y = net(inputs) # places output
 
-        loss = 5*criterion_x(output_x, inputs) + F.nll_loss(output_y,labels)
+        loss = 50*criterion_x(output_x, inputs) + F.nll_loss(output_y,labels)
 
         loss.backward()
         optimizer.step()
