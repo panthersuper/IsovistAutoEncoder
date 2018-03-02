@@ -50,10 +50,12 @@ class Encoder(nn.Module):
             #1/60/30
             
             nn.Conv2d(1, 10, kernel_size=5,stride=1, padding=2),
+            nn.BatchNorm2d(10),
             nn.MaxPool2d(2, stride=2),
             nn.ReLU(), #10/30/15
 
             nn.Conv2d(10, 20, kernel_size=5,stride=1, padding=2),
+            nn.BatchNorm2d(20),
             nn.MaxPool2d(2, stride=2),
             nn.ReLU(),
             nn.Dropout2d(), #20/15/7
@@ -78,17 +80,18 @@ class Decoder(nn.Module):
 
         self.decoder = nn.Sequential(
             nn.ConvTranspose2d(20, 20, 1, stride=2, padding=(0,1),output_padding=(1,2),dilation=3),  # b, 40, 30, 15
+            nn.BatchNorm2d(20),
             nn.ReLU(True),
 
             nn.ConvTranspose2d(20, 10, 5, stride=1, padding=2),  # b, 16, 5, 5
+            nn.BatchNorm2d(10),
             nn.ReLU(True),
 
-            nn.ConvTranspose2d(10, 10, 1, stride=2, padding=(0,0),output_padding=(1,1)),  # b, 40, 60, 30
+            nn.ConvTranspose2d(10, 5, 1, stride=2, padding=(0,0),output_padding=(1,1)),  # b, 40, 60, 30
+            nn.BatchNorm2d(5),
             nn.ReLU(True),
 
-            # # nn.UpsamplingNearest2d(size=(60,30)),
-
-            nn.ConvTranspose2d(10, 1, 5, stride=1, padding=2),  # b, 1, 28, 28
+            nn.ConvTranspose2d(5, 1, 5, stride=1, padding=2),  # b, 1, 28, 28
             nn.Tanh()
         )
     def to2D(self, z):

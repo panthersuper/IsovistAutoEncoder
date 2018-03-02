@@ -6,7 +6,7 @@ from DataLoader import *
 
 from torch.autograd import Variable
 import torch.nn as nn
-from model.AutoEncoder import Net
+from model.AutoEncoderResidual import Net
 import torch.optim as optim
 import torch.optim.lr_scheduler as s
 import torch.nn.functional as F
@@ -18,7 +18,7 @@ learning_rate = 0.01
 training_epoches = 20
 step_display = 50
 step_save = 2
-path_save = 'test2'
+path_save = 'test3'
 start_from = ''#./test/Epoch20'
 starting_num = 1
 
@@ -73,7 +73,7 @@ def get_accuracy(loader, size, net):
 def weights_init(m):
     classname = m.__class__.__name__
     if classname.find('Conv') != -1:
-        nn.init.kaiming_uniform(m.weight.data)
+        pass #nn.init.kaiming_uniform(m.weight.data)
 
 loader_train = DataLoaderDisk(**opt_data_train)
 # loader_val = DataLoaderDisk(**opt_data_val)
@@ -89,7 +89,7 @@ criterion_x = nn.MSELoss()
 
 optimizer = optim.SGD(net.parameters(), lr=learning_rate, momentum=0.5) 
 
-scheduler = s.StepLR(optimizer, step_size=3, gamma=0.1)
+scheduler = s.StepLR(optimizer, step_size=4, gamma=0.075)
 
 running_loss = 0.0
 
@@ -125,7 +125,7 @@ for epoch in range(training_epoches):
         # forward + backward + optimize
         output_x,output_y = net(inputs) # places output
 
-        loss = 50*criterion_x(output_x, inputs) + F.nll_loss(output_y,labels)
+        loss = 10*criterion_x(output_x, inputs) + F.nll_loss(output_y,labels)
 
         loss.backward()
         optimizer.step()

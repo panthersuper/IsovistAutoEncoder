@@ -19,7 +19,7 @@ training_epoches = 10
 step_display = 10
 step_save = 2
 path_save = 'test'
-start_from = 'test/Epoch20'#'./alexnet64/Epoch28'
+start_from = 'test3/Epoch20'#'./alexnet64/Epoch28'
 starting_num = 1
 
 batch_size = 64
