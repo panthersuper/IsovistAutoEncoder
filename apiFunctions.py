@@ -9,28 +9,28 @@ import sys
 import json
 # Dataset Parameters
 
-# Training Parameters
-learning_rate = 0.01
-training_epoches = 10
-step_display = 10
-step_save = 2
-path_save = 'test'
-start_from = 'test/Epoch10'#'./alexnet64/Epoch28'
-starting_num = 1
+# # Training Parameters
+# learning_rate = 0.01
+# training_epoches = 10
+# step_display = 10
+# step_save = 2
+# path_save = 'test'
+# start_from = 'test/Epoch10'#'./alexnet64/Epoch28'
+# starting_num = 1
 
-batch_size = 64
+# batch_size = 64
 
-opt_data_test = {
-    'img_root': 'data/',   # MODIFY PATH ACCORDINGLY
-    'file_lst': [1],   # MODIFY PATH ACCORDINGLY
-    'randomize': True,
-}
+# opt_data_test = {
+#     'img_root': 'data/',   # MODIFY PATH ACCORDINGLY
+#     'file_lst': [1],   # MODIFY PATH ACCORDINGLY
+#     'randomize': True,
+# }
 
-loader_test = DataLoaderDisk(**opt_data_test)
+# loader_test = DataLoaderDisk(**opt_data_test)
 
-net = Net()
+# net = Net()
 
-net.load_state_dict(torch.load(start_from, map_location={'cuda:0': 'cpu'}))
+# net.load_state_dict(torch.load(start_from, map_location={'cuda:0': 'cpu'}))
 
 
 def get_label(loader, size, net):
@@ -93,17 +93,25 @@ def label(input_,net,topN):
     outputs = net(Variable(input))
 
     # _, predicted = torch.max(outputs.data, 1)
-    _, predicted = torch.topk(outputs[1].data, topN)
+    label = outputs[1].data
+    label = np.swapaxes(label,1,3)
+    label = np.reshape(label,(22,3))
 
-    return predicted[0].cpu().numpy()
+    _, predicted = torch.max(label, 1)
+
+    return predicted.cpu().numpy()
+
 # get label using the latent vector
 def labelByZ(z,net,topN):
     zz = np.array(z)
     zz = zz.astype(float)
     zz = torch.from_numpy(zz).float()
 
-    outputs = net.zToLabels(Variable(zz))
-    _, predicted = torch.topk(outputs.data, topN)
+    outputs = net.zToSeg(Variable(zz)).data
+    outputs = np.swapaxes(outputs,1,3)
+    outputs = np.reshape(outputs,(22,3))
+
+    _, predicted = torch.max(outputs, 1)
 
     return predicted.cpu().numpy()   
 

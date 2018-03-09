@@ -10,6 +10,7 @@ from model.AutoEncoderResidual import Net
 import torch.optim as optim
 import torch.optim.lr_scheduler as s
 import torch.nn.functional as F
+import sys
 
 # Dataset Parameters
 
@@ -26,7 +27,7 @@ batch_size = 64
 
 # Construct dataloader
 opt_data_train = {
-    'img_root': 'data/',   # MODIFY PATH ACCORDINGLY
+    'img_root': 'data__/',   # MODIFY PATH ACCORDINGLY
     'file_lst': [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14],   # MODIFY PATH ACCORDINGLY
     'randomize': True,
 }
@@ -124,6 +125,10 @@ for epoch in range(training_epoches):
 
         # forward + backward + optimize
         output_x,output_y = net(inputs) # places output
+        
+        print(output_y)
+        print(labels)
+        sys.exit(1) 
 
         loss = 10*criterion_x(output_x, inputs) + F.nll_loss(output_y,labels)
 

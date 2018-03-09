@@ -46,21 +46,6 @@ class Encoder(nn.Module):
         super(Encoder, self).__init__() 
         self.fc1 = nn.Linear(2100, z_size)
 
-        # self.encoder = nn.Sequential(
-        #     #1/60/30
-            
-        #     nn.Conv2d(1, 10, kernel_size=5,stride=1, padding=2),
-        #     nn.BatchNorm2d(10),
-        #     nn.MaxPool2d(2, stride=2),
-        #     nn.LeakyReLU(), #10/30/15
-
-        #     nn.Conv2d(10, 20, kernel_size=5,stride=1, padding=2),
-        #     nn.BatchNorm2d(20),
-        #     nn.MaxPool2d(2, stride=2),
-        #     nn.LeakyReLU(),
-        #     nn.Dropout2d(), #20/15/7
-        # )
-
         self.encoder = nn.Sequential(
             #1/60/30
             
@@ -86,8 +71,6 @@ class Encoder(nn.Module):
             nn.Dropout2d(),
         )
 
-
-
     def forward(self,x):
         x = self.encoder(x)
 
@@ -96,31 +79,10 @@ class Encoder(nn.Module):
 
         return x
 
-
-
-
-
 class Decoder(nn.Module):
     def __init__(self,z_size):
         super(Decoder, self).__init__() 
         self.fc3 = nn.Linear(z_size, 20*15*8)
-
-        # self.decoder = nn.Sequential(
-        #     nn.ConvTranspose2d(20, 20, 1, stride=2, padding=(0,1),output_padding=(1,2),dilation=3),  # b, 40, 30, 15
-        #     nn.BatchNorm2d(20),
-        #     nn.ReLU(True),
-
-        #     nn.ConvTranspose2d(20, 10, 5, stride=1, padding=2),  # b, 16, 5, 5
-        #     nn.BatchNorm2d(10),
-        #     nn.ReLU(True),
-
-        #     nn.ConvTranspose2d(10, 5, 1, stride=2, padding=(0,0),output_padding=(1,1)),  # b, 40, 60, 30
-        #     nn.BatchNorm2d(5),
-        #     nn.ReLU(True),
-
-        #     nn.ConvTranspose2d(5, 1, 5, stride=1, padding=2),  # b, 1, 28, 28
-        #     nn.Tanh()
-        # )
 
         self.decoder = nn.Sequential(
 
@@ -150,18 +112,7 @@ class Decoder(nn.Module):
             nn.ReLU(True),
 
             UpsampleConvLayer(8, 1, kernel_size=5, stride=1, upsample=2),
-
-
-
         )
-
-
-
-
-
-
-
-
 
     def to2D(self, z):
         z = self.fc3(z)
@@ -172,7 +123,6 @@ class Decoder(nn.Module):
         z = self.to2D(z)
 
         return self.decoder(z)
-
 
 class ConvLayer(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size, stride):
@@ -218,7 +168,7 @@ class UpsampleConvLayer(nn.Module):
         super(UpsampleConvLayer, self).__init__()
         self.upsample = upsample
         if upsample:
-            self.upsample_layer = nn.UpsamplingNearest2d(scale_factor=upsample)
+            self.upsample_layer = nn.Upsample(scale_factor=upsample)
         reflection_padding = kernel_size // 2
         self.reflection_pad = nn.ReflectionPad2d(reflection_padding)
         self.conv2d = nn.Conv2d(in_channels, out_channels, kernel_size, stride)
