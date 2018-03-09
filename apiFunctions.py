@@ -94,12 +94,15 @@ def label(input_,net,topN):
 
     # _, predicted = torch.max(outputs.data, 1)
     label = outputs[1].data
-    label = np.swapaxes(label,1,3)
-    label = np.reshape(label,(22,3))
+    # label = label.permute(0,3,2,1)
+    # label = label.view(22,3)
+
+    # label = np.swapaxes(label,1,3)
+    # label = np.reshape(label,(22,3))
 
     _, predicted = torch.max(label, 1)
 
-    return predicted.cpu().numpy()
+    return predicted[0][0].cpu().numpy()
 
 # get label using the latent vector
 def labelByZ(z,net,topN):
@@ -108,12 +111,16 @@ def labelByZ(z,net,topN):
     zz = torch.from_numpy(zz).float()
 
     outputs = net.zToSeg(Variable(zz)).data
-    outputs = np.swapaxes(outputs,1,3)
-    outputs = np.reshape(outputs,(22,3))
+    # outputs = outputs.permute(0,3,2,1)
+    # print(outputs)
+    # outputs = outputs.view(22,3)
+
+    # outputs = np.swapaxes(outputs,1,3)
+    # outputs = np.reshape(outputs,(22,3))
 
     _, predicted = torch.max(outputs, 1)
 
-    return predicted.cpu().numpy()   
+    return predicted[0][0].cpu().numpy()   
 
 # get latent vector for the input(single image) using the net
 def encode(input_,net):

@@ -4,8 +4,6 @@ np.random.seed(123)
 import math
 import json
 from fnmatch import fnmatch
-import scipy.io as spio
-import sys
 
 
 # Loading data from disk

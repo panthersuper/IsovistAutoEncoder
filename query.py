@@ -154,5 +154,5 @@ output["a+b-c"] = {
 }
 
 # print(API.encode(a,net)-API.encode(b,net))
-# print(json.dumps(output))
+print(json.dumps(output))
 
