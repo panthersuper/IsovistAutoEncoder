@@ -6,7 +6,7 @@ from DataLoader import *
 
 from torch.autograd import Variable
 import torch.nn as nn
-from model.AutoEncoder import Net
+from model.AutoEncoderResidual import Net
 import apiFunctions as API
 import sys
 import json
