@@ -3,6 +3,10 @@ import numpy as np
 np.random.seed(123)
 import math
 import json
+from fnmatch import fnmatch
+import scipy.io as spio
+import sys
+
 
 # Loading data from disk
 class DataLoaderDisk(object):
@@ -14,10 +18,6 @@ class DataLoaderDisk(object):
 
         self.dir_lst = [os.path.join(self.img_root,str(i)+".json") for i in self.file_lst]
 
-        # 'img_root': 'data/',   # MODIFY PATH ACCORDINGLY
-        # 'file_lst': [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14],   # MODIFY PATH ACCORDINGLY
-        # 'randomize': True
-
         # read data info from lists
         self.list_im = []
         self.list_lab = []
@@ -28,8 +28,11 @@ class DataLoaderDisk(object):
             with open(filedir, 'r') as f:
                 #thisdata = np.array(json.load(f))
                 thisd = json.load(f)
+
                 self.list_im.extend(thisd)
                 self.list_lab.extend([lab for i in range(len(thisd))])
+                count +=1
+
     
         self.list_im = np.array(self.list_im, np.object)
         self.list_im = self.list_im/10000
@@ -58,6 +61,93 @@ class DataLoaderDisk(object):
                 self._idx = 0
 
         return images_batch, labels_batch
+
+    def size(self):
+        return self.num
+
+    def reset(self):
+        self._idx = 0
+
+
+class DataLoaderSegmentation(object):
+    def __init__(self, **kwargs):
+
+        self.randomize = kwargs['randomize']
+        self.img_root = os.path.join(kwargs['img_root'])
+
+        # read data info from lists
+        self.list_im = []
+        self.list_vol = []
+        self.count = 0
+
+        #get data list
+        for path, subdirs, files in os.walk(self.img_root):
+            for name in files:
+                if fnmatch(name, '*.json'):
+                    img_dir = os.path.join(self.img_root,name)
+
+                    with open(img_dir, 'r') as f:
+                        #thisdata = np.array(json.load(f))
+
+                        image = json.load(f)
+                        if len(image) == 1:
+                            image = image[0]
+
+                        image = np.array(image, np.object)
+
+
+
+                        image = image/10000
+
+                        labels = json.loads(name.split("_")[0])
+                        labels = np.array(labels, np.object)
+
+
+
+                        self.list_im.append(image)
+                        self.list_vol.append(labels)
+
+                        self.count +=1
+
+                        if self.count % 1000 == 0:
+                            print(self.count)
+
+
+
+
+
+        self.list_im = np.array(self.list_im, np.object)
+        self.list_vol = np.array(self.list_vol, np.object)
+
+        self.num = self.list_im.shape[0]
+
+        print('# Images found:',self.num)
+
+        # permutation
+        perm = np.random.permutation(self.num)
+        self.list_im[:, ...] = self.list_im[perm, ...]
+        self.list_vol[:, ...] = self.list_vol[perm, ...]
+
+        self._idx = 0
+
+    def next_batch(self, batch_size):
+        images_batch = np.zeros((batch_size, 60, 30))
+        labels_batch = np.zeros((batch_size, 22))
+
+        dirs = []
+        
+        for i in range(batch_size):
+
+            images_batch[i, ...] = self.list_im[self._idx]
+            labels_batch[i, ...] = self.list_vol[self._idx]
+
+
+            self._idx += 1
+            if self._idx == self.num:
+                self._idx = 0
+
+        return images_batch, labels_batch
+
 
     def size(self):
         return self.num
