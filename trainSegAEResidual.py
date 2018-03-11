@@ -14,12 +14,12 @@ import torch.nn.functional as F
 # Dataset Parameters
 
 # Training Parameters
-learning_rate = 0.001
-training_epoches = 40
+learning_rate = 0.00000001
+training_epoches = 30
 step_display = 50
-step_save = 2
-path_save = 'trainSegAndAE4'
-start_from = './trainSegAndAE3/Epoch8'#./test/Epoch20'
+step_save = 1
+path_save = 'trained'
+start_from = './trained/t92v96e56821'#./test/Epoch20'
 starting_num = 1
 
 batch_size = 64
@@ -39,9 +39,13 @@ class CrossEntropyLoss(nn.Module):
         return self.nll_loss(F.log_softmax(inputs), targets)
 
 class CrossEntropyLoss2d(nn.Module):
-    def __init__(self, weight=None, size_average=True):
+    def __init__(self, weight= [1,1,2], size_average=True):
         super(CrossEntropyLoss2d, self).__init__()
-        self.nll_loss = nn.NLLLoss2d(weight, size_average)
+        myweight = np.array(weight)
+        myweight = torch.from_numpy(myweight).float()
+        myweight = Variable(myweight).cuda()
+
+        self.nll_loss = nn.NLLLoss2d(myweight, size_average)
 
     def forward(self, inputs, targets):
         return self.nll_loss(F.log_softmax(inputs), targets)
@@ -49,7 +53,7 @@ class CrossEntropyLoss2d(nn.Module):
 
 def get_accuracy(loader, size, net):
     top_1_correct = 0
-    top_5_correct = 0
+    vertical_correct = 0
     decode_error = 0
 
     for i in range(size):
@@ -77,10 +81,10 @@ def get_accuracy(loader, size, net):
         # print("+")
         # print(xx.data.cpu().numpy()[0][0] - inputs.cpu().numpy()[0][0])
 
-
         top_1_correct += (predicted == labels).sum()/22
+        vertical_correct += (predicted[:,:,-4:] == labels[:,-4:]).sum()/4
 
-    return 100 * top_1_correct / float(size), decode_error
+    return 100 * top_1_correct / float(size), decode_error , 100 * vertical_correct / float(size)
 
 def weights_init(m):
     classname = m.__class__.__name__
@@ -102,7 +106,7 @@ criterion_y = CrossEntropyLoss2d()
   #CrossEntropyLoss()
 
 
-optimizer = optim.SGD(net.parameters(), lr=learning_rate, momentum=0.5,weight_decay=0.005) 
+optimizer = optim.SGD(net.parameters(), lr=learning_rate, momentum=0.9,weight_decay=0.01) 
 
 scheduler = s.StepLR(optimizer, step_size=4, gamma=0.1)
 
@@ -116,12 +120,17 @@ if start_from == '':
 with open('./' + path_save + '/log.txt', 'a') as f:
     accs = get_accuracy(loader_train, 600, net)
     f.write("Epoch: 0 0"+ "Training set: Top-1"+ str(accs[0])+ "err"+ str(accs[1]))
-    print("Epoch: 0 0", "Training set: Top-1", accs[0], "err", accs[1])
+    print("Epoch: 0 0", "Training set: Top-1", accs[0], "V Accuracy", accs[2],  "err", accs[1])
 
 
 for epoch in range(training_epoches):
     scheduler.step()
     net.train()
+    
+    # #freeze encoder to train decoder
+    # for param in net.encoder.parameters():
+    #     param.requires_grad = False
+
 
     for i in range(loader_train.size()//batch_size):  # loop over the dataset multiple times
         data = loader_train.next_batch(batch_size)
@@ -152,7 +161,56 @@ for epoch in range(training_epoches):
         # print(output_y)
         # print(labels)
 
-        loss = criterion_y(output_y,labels) + criterion_x(output_x, inputs) * 5
+        loss =  criterion_x(output_x, inputs) * 10 + criterion_y(output_y,labels)
+
+
+
+        # # Initialize logits etc. with random
+        # # logits = torch.FloatTensor(batch_size, out_channels, H, W).normal_()
+        # # target = torch.LongTensor(batch_size, H, W).random_(0, out_channels)
+        # weights = [[[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,5,5,5,5]]]
+        # weights = [weights for i in range(batch_size)]
+        # weights = np.array(weights)
+        # weights = torch.from_numpy(weights).float()
+
+        # # weights = torch.FloatTensor(batch_size, 1, H, W).random_(1, 3)
+        # weights = Variable(weights).cuda()
+
+        # # Calculate log probabilities
+        # logp = F.log_softmax(output_y)
+        # print(output_y)
+
+        # # Gather log probabilities with respect to target
+        # logp = logp.gather(1, labels.view(batch_size, 1, 1, 22))
+
+
+        # sys.exit(0)
+
+        # # Multiply with weights
+        # weighted_logp = (logp * weights).view(batch_size, -1)
+
+        # # Rescale so that loss is in approx. same interval
+        # weighted_loss = weighted_logp.sum(1) / weights.view(batch_size, -1).sum(1)
+
+        # # Average over mini-batch
+        # weighted_loss = weighted_loss.mean()
+
+        # loss = weighted_loss #+ criterion_x(output_x, inputs) * 5
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         loss.backward()
         optimizer.step()
@@ -168,14 +226,15 @@ for epoch in range(training_epoches):
 
             running_loss = 0.0
 
-    if epoch % step_save == 1:
-       torch.save(net.state_dict(), './' + path_save + '/Epoch'+str(epoch+starting_num))
+    if epoch % step_save == 1 or epoch == 0:
+        print("saving state...")
+        torch.save(net.state_dict(), './' + path_save + '/Epoch'+str(epoch+starting_num))
 
     net.eval()
     with open('./' + path_save + '/log.txt', 'a') as f:
         accs = get_accuracy(loader_train, 600, net)
         f.write("Epoch: %d Training set: Top-1 %.3f Top-5 %.3f\n" %(epoch + starting_num, accs[0], accs[1]))
-        print("Epoch:", epoch + starting_num, "Training set: Top-1", accs[0], "err", accs[1])
+        print("Epoch:", epoch + starting_num, "Training set: Top-1", accs[0], "V Accuracy", accs[2],  "err", accs[1])
 
     #     accs = get_accuracy(loader_val, 10000, net)
     #     print("Epoch:", epoch + starting_num, "Validation set: Top-1",accs[0], "Top-5", accs[1])

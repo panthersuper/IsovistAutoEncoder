@@ -19,7 +19,7 @@ training_epoches = 10
 step_display = 10
 step_save = 2
 path_save = 'test'
-start_from = 'trained/Epoch40'#'./alexnet64/Epoch28'
+start_from = 'trained/t92v96e56821'#'./alexnet64/Epoch28'
 starting_num = 1
 
 net = Net()

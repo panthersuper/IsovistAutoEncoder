@@ -77,11 +77,13 @@ class DataLoaderSegmentation(object):
         self.list_im = []
         self.list_vol = []
         self.count = 0
+        self.limit = 70000
 
         #get data list
         for path, subdirs, files in os.walk(self.img_root):
             for name in files:
-                if fnmatch(name, '*.json'):
+                if fnmatch(name, '*.json') and self.count<self.limit:
+
                     img_dir = os.path.join(self.img_root,name)
 
                     with open(img_dir, 'r') as f:
@@ -109,6 +111,7 @@ class DataLoaderSegmentation(object):
 
                         if self.count % 1000 == 0:
                             print(self.count)
+                        
 
 
 
