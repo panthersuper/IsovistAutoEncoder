@@ -11,6 +11,31 @@ import apiFunctions as API
 import sys
 import json
 
+def man_dis(v1,v2):
+    count = 0
+    for vv1,vv2 in zip(v1,v2):
+        count += abs(float(vv1)-float(vv2))
+    return count
+
+def getValue(data,input,type):
+    value = 0
+    dis_total = 0
+
+    for key in data:
+        v = json.loads(key)
+        dis = man_dis(v,input)
+
+        if dis == 0:
+            return data[key][type]
+
+        else:
+            dis_total += 1/dis
+            value += data[key][type]/dis
+    
+    return value/dis_total
+
+rating_data = json.load(open('parse_survey/normalized_ratings.json'))
+
 # Dataset Parameters
 
 # Training Parameters
@@ -132,27 +157,43 @@ output = {}
 output["a"] = {
     "value":a.tolist() ,
     "encode":a_encode.tolist() ,
-    "label":a_label.tolist() 
+    "label":a_label.tolist(),
+    "interest":getValue(rating_data,a_encode.tolist(),"interest"),
+    "public":getValue(rating_data,a_encode.tolist(),"public"),
+    "spacious":getValue(rating_data,a_encode.tolist(),"spacious")
 }
 
 output["b"] = {
     "value":b.tolist() ,
     "encode":b_encode.tolist() ,
-    "label":b_label.tolist() 
+    "label":b_label.tolist(),
+    "interest":getValue(rating_data,b_encode.tolist(),"interest"),
+    "public":getValue(rating_data,b_encode.tolist(),"public"),
+    "spacious":getValue(rating_data,b_encode.tolist(),"spacious")
+
 }
 
 output["c"] = {
     "value":c.tolist() ,
     "encode":c_encode.tolist() ,
-    "label":c_label.tolist() 
+    "label":c_label.tolist() ,
+    "interest":getValue(rating_data,c_encode.tolist(),"interest"),
+    "public":getValue(rating_data,c_encode.tolist(),"public"),
+    "spacious":getValue(rating_data,c_encode.tolist(),"spacious")
+
+
 }
 
 output["a+b-c"] = {
     "value":b_minus_c_plus_a.tolist() ,
     "encode":b_minus_c_plus_a_encode.tolist() ,
-    "label":b_minus_c_plus_a_label.tolist() 
+    "label":b_minus_c_plus_a_label.tolist() ,
+    "interest":getValue(rating_data,b_minus_c_plus_a_encode.tolist(),"interest"),
+    "public":getValue(rating_data,b_minus_c_plus_a_encode.tolist(),"public"),
+    "spacious":getValue(rating_data,b_minus_c_plus_a_encode.tolist(),"spacious")
+
 }
 
 # print(API.encode(a,net)-API.encode(b,net))
-# print(json.dumps(output))
+print(json.dumps(output))
 
